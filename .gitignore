@@ -12,3 +12,4 @@ build
 coverage
 *.env
 CLAUDE.md
+.README.md

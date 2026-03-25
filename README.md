@@ -64,15 +64,21 @@ This creates a `shared` Docker network and connects `kratos-db`, `gorehab-db`, `
 
 ## Port Mappings
 
-| Project           | Web    | API    | Extra  |
-| ----------------- | ------ | ------ | ------ |
-| Kratos            | 3010   | 8010   | 8011   |
-| Schaltapp         | 3020   | 8020   | 8022   |
-| Ennosapp          | 3030   | 8030   | 8031   |
-| Polainsight       | 3040   | 8040   | 8041   |
-| GoRehab           | 3050   | 8050   | 8051   |
-| Apiable Dashboard | 3060   | 8060   | 8061   |
-| Apiable Portal    | 3070   | 8070   | 8071   |
+Each project gets a dedicated port range with three ports (web, API, extra):
+
+| Slot | Web  | API  | Extra |
+| ---- | ---- | ---- | ----- |
+| 1    | 3010 | 8010 | 8011  |
+| 2    | 3020 | 8020 | 8022  |
+| 3    | 3030 | 8030 | 8031  |
+| 4    | 3040 | 8040 | 8041  |
+| 5    | 3050 | 8050 | 8051  |
+| 6    | 3060 | 8060 | 8061  |
+| 7    | 3070 | 8070 | 8071  |
+| 8    | 3080 | 8080 | 8081  |
+| 9    | 3090 | 8090 | 8091  |
+| 10   | 4000 | 9000 | 9001  |
+| 11   | 4010 | 9010 | 9011  |
 
 ## Host Mounts
 
