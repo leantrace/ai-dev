@@ -60,7 +60,7 @@ To connect project databases across containers:
 ./shared-network.sh
 ```
 
-This creates a `shared` Docker network and connects `kratos-db`, `gorehab-db`, `schaltapp-db`, and `polasight-db` to it.
+This creates a `shared` Docker network and connects the database containers listed in `.env`.
 
 ## Port Mappings
 
@@ -79,6 +79,42 @@ Each project gets a dedicated port range with three ports (web, API, extra):
 | 9    | 3090 | 8090 | 8091  |
 | 10   | 4000 | 9000 | 9001  |
 | 11   | 4010 | 9010 | 9011  |
+
+## WezTerm
+
+Optional terminal configuration that auto-opens project tabs connected to the `ai-dev` container via `docker exec`.
+
+### Setup
+
+```bash
+ln -sf ~/workspace/ai-dev/wezterm ~/.config/wezterm
+cp wezterm/projects.example.lua wezterm/projects.lua
+```
+
+Edit `projects.lua` with your project paths. Each entry defines a tab:
+
+```lua
+{
+  name = 'MyApp',
+  cwd = wezterm.home_dir .. '/workspace/myapp',
+  panes = 3,                    -- 1 = single, 2 = left/right, 3 = left + right + bottom-right
+  devcontainer = {              -- omit for local-only tabs
+    container = 'ai-dev',
+    workdir = '/home/ai/workspace/myapp',
+    user = 'ai',
+    shell = 'zsh',
+  },
+}
+```
+
+`projects.lua` is gitignored — it contains your private project names and paths.
+
+| File                          | Committed | Description                     |
+| ----------------------------- | --------- | ------------------------------- |
+| `wezterm/wezterm.lua`         | Yes       | Main config (theme, keys, font) |
+| `wezterm/startup.lua`         | Yes       | Tab/pane layout engine          |
+| `wezterm/projects.example.lua`| Yes       | Example project config          |
+| `wezterm/projects.lua`        | No        | Your project tabs (private)     |
 
 ## Host Mounts
 

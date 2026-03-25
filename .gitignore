@@ -13,4 +13,5 @@ coverage
 *.env
 CLAUDE.md
 .README.md
+wezterm/projects.lua
 .scripts
