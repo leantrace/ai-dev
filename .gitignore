@@ -1,0 +1,14 @@
+.config
+.history
+.temp
+.idea
+.vscode
+*.log
+.DS_Store
+Thumbs.db
+node_modules
+dist
+build
+coverage
+*.env
+CLAUDE.md
