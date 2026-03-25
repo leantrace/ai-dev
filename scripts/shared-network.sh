@@ -1,8 +1,29 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ENV_FILE="${SCRIPT_DIR}/../.env"
+
+if [ ! -f "$ENV_FILE" ]; then
+  echo "Error: .env file not found at $ENV_FILE"
+  echo ""
+  echo "Create a .env file with:"
+  echo "  containers=ai-dev,app1-db,app2-db"
+  exit 1
+fi
+
+source "$ENV_FILE"
+
+if [ -z "${containers:-}" ]; then
+  echo "Error: 'containers' not set in .env"
+  echo ""
+  echo "Add a comma-separated list of container names:"
+  echo "  containers=ai-dev,app1-db,app2-db"
+  exit 1
+fi
+
 NETWORK="shared"
-CONTAINERS=("kratos-db" "gorehab-db" "schaltapp-db" "polasight-db")
+IFS=',' read -ra CONTAINERS <<< "$containers"
 
 # Create network if it doesn't exist
 if ! docker network inspect "$NETWORK" &>/dev/null; then
