@@ -82,7 +82,7 @@ Each project gets a dedicated port range with three ports (web, API, extra):
 
 ## WezTerm
 
-Optional terminal configuration that auto-opens project tabs connected to the `ai-dev` container via `docker exec`.
+Optional terminal configuration that auto-opens project tabs in separate windows, connected via local shell, `docker exec`, or SSH+tmux.
 
 ### Setup
 
@@ -91,20 +91,59 @@ ln -sf ~/workspace/ai-dev/wezterm ~/.config/wezterm
 cp wezterm/projects.example.lua wezterm/projects.lua
 ```
 
-Edit `projects.lua` with your project paths. Each entry defines a tab:
+Edit `projects.lua` with your project paths. The file is a list of **windows**, each containing **tabs**:
 
 ```lua
-{
-  name = 'MyApp',
-  cwd = wezterm.home_dir .. '/workspace/myapp',
-  panes = 3,                    -- 1 = single, 2 = left/right, 3 = left + right + bottom-right
-  devcontainer = {              -- omit for local-only tabs
-    container = 'ai-dev',
-    workdir = '/home/ai/workspace/myapp',
-    user = 'ai',
-    shell = 'zsh',
+return {
+  -- Window 1: Local shells
+  {
+    name = 'Local',
+    tabs = {
+      { name = 'MyApp', cwd = wezterm.home_dir .. '/workspace/myapp', panes = 3 },
+    },
+  },
+
+  -- Window 2: Docker dev containers
+  {
+    name = 'Docker',
+    tabs = {
+      {
+        name = 'MyApp',
+        cwd = wezterm.home_dir .. '/workspace/myapp',
+        panes = 3,
+        devcontainer = {
+          container = 'ai-dev',
+          workdir = '/home/ai/workspace/myapp',
+          user = 'ai',
+          shell = 'zsh',
+        },
+      },
+    },
+  },
+
+  -- Window 3: SSH + tmux sessions
+  {
+    name = 'Server',
+    tabs = {
+      { name = 'Main', ssh = { host = 'myserver', session = 'main', workdir = '/home/user/project' } },
+    },
   },
 }
+```
+
+- **panes**: `1` = single, `2` = left/right, `3` = left + right + bottom-right
+- **devcontainer**: connects via `docker exec` — omit for local tabs
+- **ssh**: connects via `ssh <host> -t "tmux new-session -A -s <session>"` — `workdir` sets the directory for new sessions
+
+### Selective Window Launch
+
+Set `WEZTERM_WINDOW_GROUP` to launch specific windows without closing existing ones:
+
+```bash
+WEZTERM_WINDOW_GROUP=Local wezterm start        # only local tabs
+WEZTERM_WINDOW_GROUP=Docker wezterm start       # only docker tabs
+WEZTERM_WINDOW_GROUP=Local,Server wezterm start # multiple groups
+wezterm start                                   # all windows (default)
 ```
 
 `projects.lua` is gitignored — it contains your private project names and paths.

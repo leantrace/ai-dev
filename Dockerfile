@@ -78,6 +78,14 @@ RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o /t
     && /tmp/aws/install \
     && rm -rf /tmp/awscliv2.zip /tmp/aws
 
+# ── OpenTofu ─────────────────────────────────────────────────────────────────
+RUN TOFU_VERSION=$(curl -fsSL https://api.github.com/repos/opentofu/opentofu/releases/latest | jq -r '.tag_name' | sed 's/^v//') \
+    && curl -fsSL "https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_arm64.zip" -o /tmp/tofu.zip \
+    && unzip -q /tmp/tofu.zip -d /tmp/tofu \
+    && mv /tmp/tofu/tofu /usr/local/bin/tofu \
+    && chmod +x /usr/local/bin/tofu \
+    && rm -rf /tmp/tofu.zip /tmp/tofu
+
 # ── Task (taskfile.dev) ──────────────────────────────────────────────────────
 RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
