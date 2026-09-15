@@ -155,6 +155,65 @@ wezterm start                                   # all windows (default)
 | `wezterm/projects.example.lua`| Yes       | Example project config          |
 | `wezterm/projects.lua`        | No        | Your project tabs (private)     |
 
+## Alacritty
+
+Same idea as the WezTerm setup, for [Alacritty](https://alacritty.org) (0.17+). Alacritty has no built-in tabs or panes, so `startup.sh` opens one **native macOS tab** per project entry via `alacritty msg create-window`. Tabs get fixed names and connect via local shell, `docker exec`, or SSH+tmux — exactly like the WezTerm tabs.
+
+### Setup
+
+```bash
+ln -sfn ~/workspace/ai-dev/alacritty ~/.config/alacritty
+cp alacritty/projects.example.sh alacritty/projects.sh
+```
+
+macOS must open new windows as tabs. Either set System Settings → Desktop & Dock → *Prefer tabs when opening documents* to **Always**, or enable it for Alacritty only:
+
+```bash
+defaults write org.alacritty AppleWindowTabbingMode -string always
+```
+
+Edit `projects.sh` — it is plain bash, sourced by `startup.sh`:
+
+```bash
+# Window 1: Local shells
+group "Local"
+tab_local "MyApp" "$HOME/workspace/myapp"
+
+# Window 2: Docker dev containers
+group "Docker"
+tab_docker "MyApp" "$HOME/workspace/myapp" ai-dev /home/ai/workspace/myapp ai zsh
+
+# Window 3: SSH + tmux sessions
+group "Server"
+tab_ssh "Main" myserver main /home/user/project
+```
+
+- **group**: one Alacritty window (the first group reuses the launching instance, every further group starts its own Alacritty instance)
+- **tab_local** `NAME [CWD]`: login shell
+- **tab_docker** `NAME CWD CONTAINER WORKDIR [USER] [SHELL]`: `docker exec` into a dev container
+- **tab_ssh** `NAME HOST SESSION [WORKDIR]`: `ssh HOST -t "tmux new-session -A -s SESSION"`
+- there is no `panes` option — Alacritty cannot split; for SSH tabs tmux on the server does that anyway
+
+Only the first shell of an Alacritty process builds the tabs; `Cmd+T` / `Cmd+N` open plain login shells. Tab keys: `Cmd+1..9`, `Cmd+Shift+[` / `]`, `Ctrl+Tab`.
+
+### Selective Window Launch
+
+```bash
+ALACRITTY_WINDOW_GROUP=Local alacritty         # only local tabs
+ALACRITTY_WINDOW_GROUP=Local,Server alacritty  # multiple groups
+alacritty                                      # all groups (default)
+```
+
+`projects.sh` is gitignored — it contains your private project names and paths.
+
+| File                            | Committed | Description                           |
+| ------------------------------- | --------- | ------------------------------------- |
+| `alacritty/alacritty.toml`      | Yes       | Main config (theme, keys, font)       |
+| `alacritty/themes/adventure.toml` | Yes     | Color scheme (WezTerm's `Adventure`)  |
+| `alacritty/startup.sh`          | Yes       | Tab engine (native macOS tabs)        |
+| `alacritty/projects.example.sh` | Yes       | Example project config                |
+| `alacritty/projects.sh`         | No        | Your project tabs (private)           |
+
 ## Host Mounts
 
 The container bind-mounts the following from the host:

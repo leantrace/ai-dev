@@ -1,0 +1,59 @@
+# Alacritty config — mirrors wezterm/wezterm.lua.
+#
+# Alacritty has no built-in tabs or panes. On macOS it uses native window tabs
+# instead: startup.sh opens one tab per entry in projects.sh (like WezTerm's
+# gui-startup hook). Requires macOS "Prefer tabs when opening documents: always"
+# — globally in System Settings > Desktop & Dock, or for Alacritty only:
+#   defaults write org.alacritty AppleWindowTabbingMode -string always
+
+[general]
+import = ["themes/adventure.toml"]
+live_config_reload = true
+
+[window]
+dimensions = { columns = 81, lines = 22 }
+padding = { x = 2, y = 2 }
+# Startup tabs get fixed names from projects.sh; startup.sh turns dynamic_title
+# off per window once the name is set.
+dynamic_title = true
+# Let macOS compose Option+key (Opt+8 = "{", Opt+G = "@", ... on Swiss/German
+# layouts), which is what the OPT key mappings in wezterm.lua emulate.
+option_as_alt = "None"
+
+[font]
+# Nerd Font so starship/tmux prompt icons render. WezTerm bundles Nerd Font
+# symbols and falls back to them automatically; Alacritty does not.
+#   brew install --cask font-jetbrains-mono-nerd-font
+size = 14
+normal = { family = "JetBrainsMono Nerd Font Mono" }
+
+[scrolling]
+history = 10000
+
+[terminal]
+# Every new shell (first window, Cmd+T, Cmd+N) goes through startup.sh. Only the
+# first shell of an Alacritty process builds the project tabs; later shells get
+# a plain login shell.
+shell = { program = "/bin/zsh", args = ["-l", "-c", "exec ~/.config/alacritty/startup.sh"] }
+
+[keyboard]
+bindings = [
+  # Newline without submitting (Claude Code etc.), same as wezterm.lua
+  { key = "Enter", mods = "Shift", chars = "\n" },
+
+  # Tab navigation (macOS native tabs)
+  { key = "T",   mods = "Command",       action = "CreateNewTab" },
+  { key = "]",   mods = "Command|Shift", action = "SelectNextTab" },
+  { key = "[",   mods = "Command|Shift", action = "SelectPreviousTab" },
+  { key = "Tab", mods = "Control",       action = "SelectNextTab" },
+  { key = "Tab", mods = "Control|Shift", action = "SelectPreviousTab" },
+  { key = "1",   mods = "Command",       action = "SelectTab1" },
+  { key = "2",   mods = "Command",       action = "SelectTab2" },
+  { key = "3",   mods = "Command",       action = "SelectTab3" },
+  { key = "4",   mods = "Command",       action = "SelectTab4" },
+  { key = "5",   mods = "Command",       action = "SelectTab5" },
+  { key = "6",   mods = "Command",       action = "SelectTab6" },
+  { key = "7",   mods = "Command",       action = "SelectTab7" },
+  { key = "8",   mods = "Command",       action = "SelectTab8" },
+  { key = "9",   mods = "Command",       action = "SelectLastTab" },
+]
