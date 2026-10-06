@@ -82,18 +82,20 @@ TAB_GROUP=()
 TAB_NAME=()
 TAB_CWD=()
 TAB_CMD=()
+TAB_DYN=()   # 1 = title follows the program (tmux sets it), 0 = fixed name
 
 group() {
   CURRENT_GROUP="$1"
   GROUP_NAMES+=("$1")
 }
 
-add_tab() { # name cwd cmd
+add_tab() { # name cwd cmd [dynamic]
   [ -n "$CURRENT_GROUP" ] || group "Default"
   TAB_GROUP+=("$CURRENT_GROUP")
   TAB_NAME+=("$1")
   TAB_CWD+=("$2")
   TAB_CMD+=("$3")
+  TAB_DYN+=("${4:-0}")
 }
 
 # tab_local NAME [CWD]
@@ -111,7 +113,10 @@ tab_docker() {
 tab_ssh() {
   local tmux_cmd="tmux new-session -A -s $3"
   [ -n "${4:-}" ] && tmux_cmd="$tmux_cmd -c $4"
-  add_tab "$1" "$HOME" "ssh $2 -t \"$tmux_cmd\""
+  # Dynamic title: tmux sets it to the session name (= tab name), prefixed
+  # with ⚙️ / 🔔 while a Claude in that session works / waits for input
+  # (server-side Claude Code hook + tmux set-titles).
+  add_tab "$1" "$HOME" "ssh $2 -t \"$tmux_cmd\"" 1
 }
 
 if [ -f "$CONFIG_DIR/projects.sh" ]; then
@@ -153,7 +158,7 @@ if [ "$(defaults read -g AppleWindowTabbingMode 2>/dev/null)" != "always" ] &&
   echo "Fix:     defaults write org.alacritty AppleWindowTabbingMode -string always" >&2
 fi
 
-first_name="" first_cwd="" first_cmd="" first_found=0
+first_name="" first_cwd="" first_cmd="" first_dyn=0 first_found=0
 for i in "${!TAB_NAME[@]}"; do
   [ "${TAB_GROUP[$i]}" = "$this_group" ] || continue
 
@@ -162,14 +167,22 @@ for i in "${!TAB_NAME[@]}"; do
     first_name="${TAB_NAME[$i]}"
     first_cwd="${TAB_CWD[$i]}"
     first_cmd="${TAB_CMD[$i]}"
+    first_dyn="${TAB_DYN[$i]}"
     continue
   fi
 
+  # -T freezes the title for good (Alacritty ignores title escapes afterwards),
+  # so dynamic tabs only get the name via window.title, which escapes override.
+  if [ "${TAB_DYN[$i]}" = 1 ]; then
+    title_args=(-o "window.title=\"${TAB_NAME[$i]}\"")
+  else
+    title_args=(-T "${TAB_NAME[$i]}")
+  fi
   if [ -n "${TAB_CMD[$i]}" ]; then
-    create_tab -T "${TAB_NAME[$i]}" --working-directory "${TAB_CWD[$i]}" \
+    create_tab "${title_args[@]}" --working-directory "${TAB_CWD[$i]}" \
       -e bash -lc "${TAB_CMD[$i]}"
   else
-    create_tab -T "${TAB_NAME[$i]}" --working-directory "${TAB_CWD[$i]}"
+    create_tab "${title_args[@]}" --working-directory "${TAB_CWD[$i]}"
   fi
 done
 
@@ -178,9 +191,12 @@ if [ "$first_found" -eq 0 ]; then
   exec "$LOGIN_SHELL" -l
 fi
 
-# Name this window and freeze the title (same as tab:set_title in WezTerm)
+# Name this window; freeze the title unless the tab is dynamic (same as
+# tab:set_title in WezTerm)
+dyn_title=false
+[ "$first_dyn" = 1 ] && dyn_title=true
 msg config -w "${ALACRITTY_WINDOW_ID:--1}" \
-  "window.title=\"$first_name\"" "window.dynamic_title=false"
+  "window.title=\"$first_name\"" "window.dynamic_title=$dyn_title"
 
 cd "$first_cwd" 2>/dev/null || cd "$HOME"
 if [ -n "$first_cmd" ]; then
