@@ -119,10 +119,11 @@ tab_ssh() {
   add_tab "$1" "$HOME" "ssh $2 -t \"$tmux_cmd\"" 1
 }
 
-# tab_herdr NAME HOST
+# tab_herdr NAME [HOST]
 tab_herdr() {
-  # herdr --remote: the panes run on HOST, the local herdr draws the UI (and
-  # bridges image paste from the Mac clipboard). Needs herdr on the Mac too.
+  # With HOST: herdr --remote — the panes run on HOST, the local herdr draws
+  # the UI (and bridges image paste from the Mac clipboard). Needs herdr on the
+  # Mac too. Without HOST: a plain local herdr session on the Mac.
   # Tabs made via `alacritty msg` get Alacritty's bare launchd PATH, not the
   # zsh one, so resolve herdr here and hand the tab an absolute path.
   local bin
@@ -132,8 +133,10 @@ tab_herdr() {
       [ -x "$bin" ] && break
     done
   fi
+  local args=""
+  [ -n "${2:-}" ] && args=" --remote $2"
   # On failure keep the tab open, or the error vanishes with the tab.
-  add_tab "$1" "$HOME" "'$bin' --remote $2 || { rc=\$?; echo; echo \"herdr --remote $2 failed (exit \$rc)\"; read -r -p 'Press Enter to close'; }"
+  add_tab "$1" "$HOME" "'$bin'$args || { rc=\$?; echo; echo \"herdr$args failed (exit \$rc)\"; read -r -p 'Press Enter to close'; }"
 }
 
 if [ -f "$CONFIG_DIR/projects.sh" ]; then
